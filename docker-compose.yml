@@ -36,6 +36,25 @@ services:
       timeout: 5s
       retries: 30
 
+  opa:
+    image: openpolicyagent/opa:latest
+    container_name: opa
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./policies:/policies
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8181/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   dashboards:
     image: opensearchproject/opensearch-dashboards:latest
     container_name: opensearch-dashboards

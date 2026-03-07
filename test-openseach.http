@@ -1,0 +1,14 @@
+curl -X POST "http://localhost:9200/memo/_search" \                                                                                                                               
+  -H "Content-Type: application/json" \
+  -d '{                                                                                                                                                          
+    "query": {
+      "multi_match": {
+        "query": "customer concentration",
+        "fields": [
+          "keyCommitteeDiscussionPoints^3",
+          "riskFactors^2",
+          "executiveSummary"
+        ]
+      }
+    }
+  }'

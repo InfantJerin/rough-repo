@@ -1,0 +1,6 @@
+requests
+pydantic
+opensearch-py
+mcp[cli]
+httpx
+pytest

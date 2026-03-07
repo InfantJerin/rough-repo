@@ -1,0 +1,153 @@
+{
+  "memo": {
+    "authz": {
+      "all_fields": [
+        "memoId",
+        "clientName",
+        "clientID",
+        "industry",
+        "sector",
+        "region",
+        "currency",
+        "businessDescription",
+        "executiveSummary",
+        "proposedCommitments",
+        "riskFactors",
+        "lendingThesis",
+        "environmentalRisks",
+        "keyCommitteeDiscussionPoints"
+      ],
+
+      "roles": {
+        "deal_team_banker": {
+          "document_access": {
+            "use_deal_teams": true,
+            "use_coverage": true,
+            "unrestricted": false,
+            "filters": []
+          },
+          "field_access": {
+            "mode": "allow_all",
+            "allowed_fields": [],
+            "denied_fields": []
+          }
+        },
+        "credit_officer": {
+          "document_access": {
+            "use_deal_teams": false,
+            "use_coverage": true,
+            "unrestricted": false,
+            "filters": []
+          },
+          "field_access": {
+            "mode": "allow_all",
+            "allowed_fields": [],
+            "denied_fields": []
+          }
+        },
+        "derivatives_desk": {
+          "document_access": {
+            "use_deal_teams": false,
+            "use_coverage": false,
+            "unrestricted": false,
+            "filters": [
+              {"range": {"commitmentDate": {"lte": "now-6M/d"}}},
+              {"term": {"clientType": "private"}},
+              {"exists": {"field": "sponsors"}}
+            ]
+          },
+          "field_access": {
+            "mode": "deny_list",
+            "allowed_fields": [],
+            "denied_fields": [
+              "proposedCommitments",
+              "lendingThesis",
+              "environmentalRisks"
+            ]
+          }
+        },
+        "compliance": {
+          "document_access": {
+            "use_deal_teams": false,
+            "use_coverage": false,
+            "unrestricted": true,
+            "filters": []
+          },
+          "field_access": {
+            "mode": "allow_all",
+            "allowed_fields": [],
+            "denied_fields": []
+          }
+        }
+      },
+
+      "users": {
+        "banker_01": {
+          "role": "deal_team_banker",
+          "coverage": {
+            "region": ["India"],
+            "industry": ["Industrials", "Energy"]
+          }
+        },
+        "banker_02": {
+          "role": "deal_team_banker",
+          "coverage": {
+            "region": ["India"],
+            "industry": ["Consumer", "Healthcare"]
+          }
+        },
+        "banker_03": {
+          "role": "deal_team_banker",
+          "coverage": {
+            "region": ["India"],
+            "industry": ["Technology"]
+          }
+        },
+        "credit_officer_01": {
+          "role": "credit_officer",
+          "coverage": {
+            "region": ["India"],
+            "industry": ["Industrials", "Energy", "Materials"]
+          }
+        },
+        "deriv_user_01": {
+          "role": "derivatives_desk",
+          "coverage": {
+            "region": [],
+            "industry": []
+          }
+        },
+        "compliance_01": {
+          "role": "compliance",
+          "coverage": {
+            "region": [],
+            "industry": []
+          }
+        }
+      },
+
+      "deal_teams": {
+        "MEMO-001": ["banker_01", "banker_02"],
+        "MEMO-002": ["banker_02"],
+        "MEMO-003": ["banker_01"],
+        "MEMO-004": ["banker_02"],
+        "MEMO-005": ["banker_01"],
+        "MEMO-006": ["banker_01"],
+        "MEMO-007": ["banker_03"],
+        "MEMO-008": ["banker_02"],
+        "MEMO-009": ["banker_01"],
+        "MEMO-010": ["banker_01"],
+        "MEMO-011": ["banker_01"],
+        "MEMO-012": ["banker_03"],
+        "MEMO-013": ["banker_01"],
+        "MEMO-014": ["banker_02"],
+        "MEMO-015": ["banker_01"],
+        "MEMO-016": ["banker_02"],
+        "MEMO-017": ["banker_01"],
+        "MEMO-018": ["banker_02"],
+        "MEMO-019": ["banker_01"],
+        "MEMO-020": ["banker_01"]
+      }
+    }
+  }
+}
