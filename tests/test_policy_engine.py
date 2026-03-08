@@ -8,12 +8,10 @@ into OpenSearch query modifications.
 from __future__ import annotations
 
 import copy
-import json
-import pytest
 from unittest.mock import MagicMock
 
 from policy_engine.engine import PolicyEngine
-from policy_engine.models import UserContext, PolicyDecision
+from policy_engine.models import UserContext
 from policy_engine.opa_client import OPAClient
 
 
@@ -23,14 +21,16 @@ from policy_engine.opa_client import OPAClient
 
 ALL_FIELDS = [
     "memoId", "clientName", "clientID", "industry", "sector", "region",
-    "currency", "businessDescription", "executiveSummary", "proposedCommitments",
+    "currency", "commitmentDate", "clientType", "sponsors",
+    "businessDescription", "executiveSummary", "proposedCommitments",
     "riskFactors", "lendingThesis", "environmentalRisks",
     "keyCommitteeDiscussionPoints",
 ]
 
 DERIV_ALLOWED_FIELDS = [
     "memoId", "clientName", "clientID", "industry", "sector", "region",
-    "currency", "businessDescription", "executiveSummary",
+    "currency", "commitmentDate", "clientType", "sponsors",
+    "businessDescription", "executiveSummary",
     "riskFactors", "keyCommitteeDiscussionPoints",
 ]
 
@@ -44,6 +44,7 @@ def _opa_response_compliance():
         "user_role": "compliance",
         "document_filter": {},
         "allowed_fields": ALL_FIELDS,
+        "unrestricted": True,
     }
 
 
@@ -63,6 +64,7 @@ def _opa_response_deal_team_banker():
             "role_filters": [],
         },
         "allowed_fields": ALL_FIELDS,
+        "unrestricted": False,
     }
 
 
@@ -82,6 +84,7 @@ def _opa_response_credit_officer():
             "role_filters": [],
         },
         "allowed_fields": ALL_FIELDS,
+        "unrestricted": False,
     }
 
 
@@ -102,6 +105,7 @@ def _opa_response_derivatives_desk():
             ],
         },
         "allowed_fields": DERIV_ALLOWED_FIELDS,
+        "unrestricted": False,
     }
 
 
@@ -267,68 +271,19 @@ class TestFieldLevelSecurity:
         for field in DERIV_ALLOWED_FIELDS:
             assert field in includes
 
-    def test_filter_fields_strips_denied(self):
-        """filter_fields should strip fields from a document dict."""
-        engine = _make_engine(_opa_response_derivatives_desk())
-        decision = engine.evaluate(UserContext(user_id="deriv_user_01"))
+    def test_empty_allowed_fields_fail_closed(self):
+        """An empty allow-list should return no fields, not all fields."""
+        engine = _make_engine({
+            "allow": True,
+            "user_role": "restricted_role",
+            "document_filter": {},
+            "allowed_fields": [],
+            "unrestricted": False,
+        })
+        decision = engine.evaluate(UserContext(user_id="restricted_user"))
 
-        doc = {
-            "memoId": "MEMO-001",
-            "clientName": "Test Corp",
-            "proposedCommitments": "SECRET",
-            "lendingThesis": "SECRET",
-            "environmentalRisks": "SECRET",
-            "riskFactors": "visible",
-        }
-        filtered = engine.filter_fields(doc, decision)
-        assert "proposedCommitments" not in filtered
-        assert "lendingThesis" not in filtered
-        assert "environmentalRisks" not in filtered
-        assert filtered["riskFactors"] == "visible"
-        assert filtered["memoId"] == "MEMO-001"
-
-
-# ===================================================================
-# TEST: Document access checks (for get_memo)
-# ===================================================================
-
-class TestDocumentAccessCheck:
-    def test_compliance_can_access_any_memo(self):
-        engine = _make_engine(_opa_response_compliance())
-        decision = engine.evaluate(UserContext(user_id="compliance_01"))
-        doc = {"region": "US", "industry": "Financials"}
-        assert engine.check_document_access(decision, "MEMO-999", doc) is True
-
-    def test_banker_can_access_deal_team_memo(self):
-        engine = _make_engine(_opa_response_deal_team_banker())
-        decision = engine.evaluate(UserContext(user_id="banker_01"))
-        doc = {"region": "US", "industry": "Financials"}  # outside coverage
-        # But MEMO-001 is in deal team, so access is granted
-        assert engine.check_document_access(decision, "MEMO-001", doc) is True
-
-    def test_banker_can_access_coverage_memo(self):
-        engine = _make_engine(_opa_response_deal_team_banker())
-        decision = engine.evaluate(UserContext(user_id="banker_01"))
-        doc = {"region": "India", "industry": "Industrials"}
-        assert engine.check_document_access(decision, "MEMO-999", doc) is True
-
-    def test_banker_denied_outside_coverage_and_deal_team(self):
-        engine = _make_engine(_opa_response_deal_team_banker())
-        decision = engine.evaluate(UserContext(user_id="banker_01"))
-        doc = {"region": "US", "industry": "Financials"}
-        assert engine.check_document_access(decision, "MEMO-999", doc) is False
-
-    def test_credit_officer_coverage_match(self):
-        engine = _make_engine(_opa_response_credit_officer())
-        decision = engine.evaluate(UserContext(user_id="credit_officer_01"))
-        doc = {"region": "India", "industry": "Materials"}
-        assert engine.check_document_access(decision, "MEMO-013", doc) is True
-
-    def test_credit_officer_coverage_mismatch(self):
-        engine = _make_engine(_opa_response_credit_officer())
-        decision = engine.evaluate(UserContext(user_id="credit_officer_01"))
-        doc = {"region": "US", "industry": "Technology"}
-        assert engine.check_document_access(decision, "MEMO-012", doc) is False
+        result = engine.apply_decision_to_query(_base_query(), decision)
+        assert result["_source"]["includes"] == []
 
 
 # ===================================================================
@@ -405,6 +360,22 @@ class TestEdgeCases:
         assert "filter" in result["query"]["bool"]
         assert "_source" in result
 
+    def test_non_bool_query_is_wrapped_without_losing_intent(self):
+        """Non-bool queries should be wrapped in bool.must before filters are added."""
+        engine = _make_engine(_opa_response_deal_team_banker())
+        query = {
+            "query": {
+                "term": {
+                    "memoId": "MEMO-001",
+                }
+            },
+            "size": 1,
+        }
+        result = engine.apply_to_query(query, UserContext(user_id="banker_01"))
+        must = result["query"]["bool"]["must"]
+        assert must == [{"term": {"memoId": "MEMO-001"}}]
+        assert len(result["query"]["bool"]["filter"]) == 1
+
     def test_access_denied_decision(self):
         """If OPA says allow=false, the decision should reflect that."""
         denied_response = {
@@ -412,6 +383,7 @@ class TestEdgeCases:
             "user_role": "",
             "document_filter": {},
             "allowed_fields": [],
+            "unrestricted": False,
         }
         engine = _make_engine(denied_response)
         decision = engine.evaluate(UserContext(user_id="unknown_user"))

@@ -43,40 +43,8 @@ class PolicyEngine:
         return self._inject(copy.deepcopy(query_body), decision)
 
     def apply_decision_to_query(self, query_body: dict[str, Any], decision: PolicyDecision) -> dict[str, Any]:
-        """
-        Same as apply_to_query but accepts a pre-evaluated decision.
-        Useful when you need the decision for other checks too.
-        """
+        """Inject a pre-evaluated policy decision into an OpenSearch query."""
         return self._inject(copy.deepcopy(query_body), decision)
-
-    def check_document_access(self, decision: PolicyDecision, memo_id: str, document: dict[str, Any]) -> bool:
-        """
-        Check whether a single document is accessible under the decision.
-        Used for get_memo (single doc fetch).
-        """
-        if decision.unrestricted:
-            return True
-
-        # Deal team check
-        if decision.use_deal_teams and memo_id in decision.deal_team_memos:
-            return True
-
-        # Coverage check
-        if decision.use_coverage and decision.coverage_filter:
-            match = all(
-                document.get(field) in values
-                for field, values in decision.coverage_filter.items()
-            )
-            if match:
-                return True
-
-        return False
-
-    def filter_fields(self, document: dict[str, Any], decision: PolicyDecision) -> dict[str, Any]:
-        """Strip fields from a document that the user is not allowed to see."""
-        if not decision.allowed_fields:
-            return document
-        return {k: v for k, v in document.items() if k in decision.allowed_fields}
 
     # ------------------------------------------------------------------
     # Internals
@@ -93,7 +61,7 @@ class PolicyEngine:
         use_coverage = doc_filter.get("use_coverage", False)
         role_filters = doc_filter.get("role_filters", [])
 
-        unrestricted = not bool(doc_filter)  # empty dict means unrestricted
+        allowed_fields = raw.get("allowed_fields")
 
         return PolicyDecision(
             allow=raw.get("allow", False),
@@ -103,8 +71,8 @@ class PolicyEngine:
             use_deal_teams=use_deal_teams,
             use_coverage=use_coverage,
             role_filters=role_filters,
-            unrestricted=unrestricted,
-            allowed_fields=list(raw.get("allowed_fields", [])),
+            unrestricted=raw.get("unrestricted", False),
+            allowed_fields=list(allowed_fields) if allowed_fields is not None else None,
         )
 
     @staticmethod
@@ -115,19 +83,46 @@ class PolicyEngine:
         if not decision.unrestricted:
             security_filter = PolicyEngine._build_security_filter(decision)
             if security_filter:
-                body.setdefault("query", {}).setdefault("bool", {}).setdefault("filter", [])
-                # filter may be a single dict, normalise to list
-                existing = body["query"]["bool"]["filter"]
+                bool_query = PolicyEngine._ensure_bool_query(body)
+                existing = bool_query.setdefault("filter", [])
                 if isinstance(existing, dict):
-                    body["query"]["bool"]["filter"] = [existing, security_filter]
+                    bool_query["filter"] = [existing, security_filter]
                 else:
                     existing.append(security_filter)
 
         # ---- FLS: restrict returned fields ----
-        if decision.allowed_fields:
-            body["_source"] = {"includes": decision.allowed_fields}
+        if decision.allowed_fields is not None:
+            source = body.get("_source")
+            if isinstance(source, dict):
+                source = copy.deepcopy(source)
+            else:
+                source = {}
+            source["includes"] = decision.allowed_fields
+            body["_source"] = source
 
         return body
+
+    @staticmethod
+    def _ensure_bool_query(body: dict[str, Any]) -> dict[str, Any]:
+        """
+        Normalize the query into a bool query so policy filters can be appended
+        without altering the original search intent.
+        """
+        query = body.get("query")
+
+        if not query:
+            body["query"] = {"bool": {}}
+            return body["query"]["bool"]
+
+        if isinstance(query, dict) and set(query.keys()) == {"bool"} and isinstance(query["bool"], dict):
+            return query["bool"]
+
+        body["query"] = {
+            "bool": {
+                "must": [query],
+            }
+        }
+        return body["query"]["bool"]
 
     @staticmethod
     def _build_security_filter(decision: PolicyDecision) -> dict[str, Any] | None:

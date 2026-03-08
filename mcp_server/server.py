@@ -24,6 +24,7 @@ OPENSEARCH_HOST = os.getenv("OPENSEARCH_HOST", "localhost")
 OPENSEARCH_PORT = int(os.getenv("OPENSEARCH_PORT", "9200"))
 OPENSEARCH_INDEX = os.getenv("OPENSEARCH_INDEX", "memo")
 OPA_URL = os.getenv("OPA_URL", "http://localhost:8181")
+MAX_SEARCH_SIZE = int(os.getenv("MAX_SEARCH_SIZE", "50"))
 
 # ---------------------------------------------------------------------------
 # Bootstrap clients
@@ -52,10 +53,8 @@ mcp = FastMCP(
     ),
 )
 
-
-def _resolve_user(user_id: str) -> UserContext:
-    """Build a UserContext from the user_id provided by the MCP client."""
-    return UserContext(user_id=user_id)
+def _clamp_size(size: int) -> int:
+    return max(1, min(size, MAX_SEARCH_SIZE))
 
 
 # ---------------------------------------------------------------------------
@@ -68,7 +67,7 @@ def get_schema(user_id: str) -> str:
     searchable and their types. Respects field-level security — only fields
     the user is allowed to see are returned.
     """
-    decision = policy_engine.evaluate(_resolve_user(user_id))
+    decision = policy_engine.evaluate(UserContext(user_id=user_id))
     if not decision.allow:
         return json.dumps({"error": "Access denied"})
 
@@ -78,7 +77,7 @@ def get_schema(user_id: str) -> str:
     properties = index_mapping.get("mappings", {}).get("properties", {})
 
     # Filter to only allowed fields
-    if decision.allowed_fields:
+    if decision.allowed_fields is not None:
         properties = {k: v for k, v in properties.items() if k in decision.allowed_fields}
 
     return json.dumps({
@@ -101,15 +100,14 @@ def list_facets(
     sector, region, currency. Helps the LLM understand what filter values
     are available. Results are scoped to the user's access.
     """
-    user_ctx = _resolve_user(user_id)
-    decision = policy_engine.evaluate(user_ctx)
+    decision = policy_engine.evaluate(UserContext(user_id=user_id))
     if not decision.allow:
         return json.dumps({"error": "Access denied"})
 
     facet_fields = facet_fields or ["industry", "sector", "region", "currency"]
 
     # Filter facet_fields to only allowed fields
-    if decision.allowed_fields:
+    if decision.allowed_fields is not None:
         facet_fields = [f for f in facet_fields if f in decision.allowed_fields]
 
     # Build a match_all query and apply policy filters
@@ -160,10 +158,11 @@ def search_memos(
     Results are automatically scoped to the user's access permissions.
     Fields the user is not allowed to see are excluded from results.
     """
-    user_ctx = _resolve_user(user_id)
-    decision = policy_engine.evaluate(user_ctx)
+    decision = policy_engine.evaluate(UserContext(user_id=user_id))
     if not decision.allow:
         return json.dumps({"error": "Access denied"})
+
+    size = _clamp_size(size)
 
     # Build the search request
     should_text = []
@@ -174,9 +173,10 @@ def search_memos(
                 "businessDescription", "executiveSummary", "riskFactors",
                 "keyCommitteeDiscussionPoints", "lendingThesis",
                 "environmentalRisks", "proposedCommitments",
-            ] if not decision.allowed_fields or f in decision.allowed_fields
+            ] if decision.allowed_fields is None or f in decision.allowed_fields
         ]
-        should_text.append(TextQuery(query=query, fields=searchable_fields))
+        if searchable_fields:
+            should_text.append(TextQuery(query=query, fields=searchable_fields))
 
     req = SearchRequest(
         criteria=Criteria(
@@ -190,7 +190,7 @@ def search_memos(
         size=size,
     )
 
-    query_body = os_client.build_bool_query(req.model_dump(by_alias=True))
+    query_body = os_client.build_bool_query(req.model_dump())
     full_body: dict[str, Any] = {
         "query": query_body,
         "size": size,
@@ -230,24 +230,27 @@ def get_memo(user_id: str, memo_id: str) -> str:
     permissions — if the user is not entitled to see this memo, access
     is denied. Fields the user cannot see are stripped from the response.
     """
-    user_ctx = _resolve_user(user_id)
-    decision = policy_engine.evaluate(user_ctx, memo_ids=[memo_id])
+    decision = policy_engine.evaluate(UserContext(user_id=user_id), memo_ids=[memo_id])
 
     if not decision.allow:
         return json.dumps({"error": "Access denied"})
 
-    doc = os_client.get_memo(memo_id)
-    if doc is None:
-        return json.dumps({"error": "Memo not found"})
+    query_body: dict[str, Any] = {
+        "query": {
+            "term": {
+                "memoId": memo_id,
+            }
+        },
+        "size": 1,
+    }
+    query_body = policy_engine.apply_decision_to_query(query_body, decision)
 
-    source = doc.get("_source", {})
+    resp = os_client.raw_search(query_body)
+    hits = resp.get("hits", {}).get("hits", [])
+    if not hits:
+        return json.dumps({"error": "Memo not found or access denied"})
 
-    # Check document-level access
-    if not policy_engine.check_document_access(decision, memo_id, source):
-        return json.dumps({"error": "Access denied for this memo"})
-
-    # Apply field-level filtering
-    filtered = policy_engine.filter_fields(source, decision)
+    filtered = hits[0].get("_source", {})
 
     return json.dumps({
         "memo_id": memo_id,

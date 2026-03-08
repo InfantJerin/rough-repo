@@ -112,5 +112,6 @@ decision := {
     "allow": allow,
     "document_filter": document_filter,
     "allowed_fields": allowed_fields,
+    "unrestricted": role_def.document_access.unrestricted,
     "user_role": user.role,
 }

@@ -23,26 +23,30 @@ def os_request(method: str, path: str, body: Any = None) -> requests.Response:
 
 
 def ensure_index() -> None:
-    """Create the memo index if it doesn't exist"""
+    """Create the memo index if it doesn't exist, and ensure new fields are mapped."""
+    properties = {
+        "memoId": {"type": "keyword"},
+        "clientName": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+        "clientID": {"type": "keyword"},
+        "industry": {"type": "keyword"},
+        "sector": {"type": "keyword"},
+        "region": {"type": "keyword"},
+        "currency": {"type": "keyword"},
+        "commitmentDate": {"type": "date"},
+        "clientType": {"type": "keyword"},
+        "sponsors": {"type": "keyword"},
+        "businessDescription": {"type": "text"},
+        "executiveSummary": {"type": "text"},
+        "proposedCommitments": {"type": "text"},
+        "riskFactors": {"type": "text"},
+        "lendingThesis": {"type": "text"},
+        "environmentalRisks": {"type": "text"},
+        "keyCommitteeDiscussionPoints": {"type": "text"},
+    }
     memo_mapping = {
         "settings": {"number_of_shards": 1, "number_of_replicas": 0},
         "mappings": {
-            "properties": {
-                "memoId": {"type": "keyword"},
-                "clientName": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
-                "clientID": {"type": "keyword"},
-                "industry": {"type": "keyword"},
-                "sector": {"type": "keyword"},
-                "region": {"type": "keyword"},
-                "currency": {"type": "keyword"},
-                "businessDescription": {"type": "text"},
-                "executiveSummary": {"type": "text"},
-                "proposedCommitments": {"type": "text"},
-                "riskFactors": {"type": "text"},
-                "lendingThesis": {"type": "text"},
-                "environmentalRisks": {"type": "text"},
-                "keyCommitteeDiscussionPoints": {"type": "text"},
-            }
+            "properties": properties
         },
     }
 
@@ -53,6 +57,9 @@ def ensure_index() -> None:
         print(f"Created index: {MEMO_INDEX}")
     elif r.ok:
         print(f"Index exists: {MEMO_INDEX}")
+        mr = os_request("PUT", f"{MEMO_INDEX}/_mapping", {"properties": properties})
+        mr.raise_for_status()
+        print("Updated mapping with current schema fields")
     else:
         r.raise_for_status()
 
@@ -130,4 +137,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

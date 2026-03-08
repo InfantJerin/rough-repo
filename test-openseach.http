@@ -1,14 +1,28 @@
-curl -X POST "http://localhost:9200/memo/_search" \                                                                                                                               
-  -H "Content-Type: application/json" \
-  -d '{                                                                                                                                                          
-    "query": {
-      "multi_match": {
-        "query": "customer concentration",
-        "fields": [
-          "keyCommitteeDiscussionPoints^3",
-          "riskFactors^2",
-          "executiveSummary"
-        ]
-      }
+POST http://localhost:9200/memo/_search HTTP/1.1
+Content-Type: application/json
+
+{
+  "query": {
+    "multi_match": {
+      "query": "customer concentration",
+      "fields": [
+        "keyCommitteeDiscussionPoints^3",
+        "riskFactors^2",
+        "executiveSummary"
+      ]
     }
-  }'
+  }
+}
+
+###
+
+PUT http://localhost:9200/memo/_mapping HTTP/1.1
+Content-Type: application/json
+
+{
+  "properties": {
+    "commitmentDate": { "type": "date" },
+    "clientType": { "type": "keyword" },
+    "sponsors": { "type": "keyword" }
+  }
+}

@@ -7,9 +7,6 @@ from typing import Any
 @dataclass
 class UserContext:
     user_id: str
-    # Optional: pre-resolved from JWT claims if available
-    role: str | None = None
-    coverage: dict[str, list[str]] | None = None
 
 
 @dataclass
@@ -24,4 +21,4 @@ class PolicyDecision:
     role_filters: list[dict[str, Any]] = field(default_factory=list)
     unrestricted: bool = False
     # FLS
-    allowed_fields: list[str] = field(default_factory=list)
+    allowed_fields: list[str] | None = None
