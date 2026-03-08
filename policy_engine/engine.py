@@ -20,6 +20,8 @@ class PolicyEngine:
     reused in other services.
     """
 
+    STAFFED_USERS_FIELD = "staffedUsers"
+
     def __init__(self, opa_client: OPAClient):
         self.opa = opa_client
 
@@ -27,10 +29,10 @@ class PolicyEngine:
     # Public API
     # ------------------------------------------------------------------
 
-    def evaluate(self, user_ctx: UserContext, memo_ids: list[str] | None = None) -> PolicyDecision:
+    def evaluate(self, user_ctx: UserContext) -> PolicyDecision:
         """Ask OPA for a policy decision and return a structured object."""
-        raw = self.opa.evaluate_memo_authz(user_ctx.user_id, memo_ids)
-        return self._parse_decision(raw)
+        raw = self.opa.evaluate_memo_authz(user_ctx.user_id)
+        return self._parse_decision(raw, user_ctx.user_id)
 
     def apply_to_query(self, query_body: dict[str, Any], user_ctx: UserContext) -> dict[str, Any]:
         """
@@ -51,11 +53,9 @@ class PolicyEngine:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _parse_decision(raw: dict[str, Any]) -> PolicyDecision:
+    def _parse_decision(raw: dict[str, Any], user_id: str) -> PolicyDecision:
         doc_filter = raw.get("document_filter", {})
 
-        # OPA returns deal_team_memos as a list or set
-        deal_team_memos = list(doc_filter.get("deal_team_memos", []))
         coverage_filter = doc_filter.get("coverage_filter", {})
         use_deal_teams = doc_filter.get("use_deal_teams", False)
         use_coverage = doc_filter.get("use_coverage", False)
@@ -64,9 +64,9 @@ class PolicyEngine:
         allowed_fields = raw.get("allowed_fields")
 
         return PolicyDecision(
+            user_id=user_id,
             allow=raw.get("allow", False),
             user_role=raw.get("user_role", ""),
-            deal_team_memos=deal_team_memos,
             coverage_filter=coverage_filter,
             use_deal_teams=use_deal_teams,
             use_coverage=use_coverage,
@@ -128,15 +128,14 @@ class PolicyEngine:
     def _build_security_filter(decision: PolicyDecision) -> dict[str, Any] | None:
         """
         Build a bool filter that combines:
-        - deal team memo IDs (OR)
+        - deal team membership in the memo document (OR)
         - coverage filters (AND within coverage, OR with deal teams)
         - role-level arbitrary filters (AND on top)
         """
-        # Build the access filter (deal team OR coverage)
         access_should: list[dict[str, Any]] = []
 
-        if decision.use_deal_teams and decision.deal_team_memos:
-            access_should.append({"terms": {"memoId": decision.deal_team_memos}})
+        if decision.use_deal_teams:
+            access_should.append({"term": {PolicyEngine.STAFFED_USERS_FIELD: decision.user_id}})
 
         if decision.use_coverage and decision.coverage_filter:
             coverage_must = [

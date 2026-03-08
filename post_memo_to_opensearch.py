@@ -35,6 +35,7 @@ def ensure_index() -> None:
         "commitmentDate": {"type": "date"},
         "clientType": {"type": "keyword"},
         "sponsors": {"type": "keyword"},
+        "staffedUsers": {"type": "keyword"},
         "businessDescription": {"type": "text"},
         "executiveSummary": {"type": "text"},
         "proposedCommitments": {"type": "text"},

@@ -27,15 +27,12 @@ class OPAClient:
 
     # ----- convenience -------------------------------------------------
 
-    def evaluate_memo_authz(self, user_id: str, memo_ids: list[str] | None = None) -> dict[str, Any]:
+    def evaluate_memo_authz(self, user_id: str) -> dict[str, Any]:
         """
         Evaluate memo.authz.decision for a user.
         Returns the full decision dict from Rego.
         """
-        input_data: dict[str, Any] = {"user_id": user_id}
-        if memo_ids is not None:
-            input_data["memo_ids"] = memo_ids
-        return self.query("memo/authz/decision", input_data)
+        return self.query("memo/authz/decision", {"user_id": user_id})
 
     # ----- health / management -----------------------------------------
 

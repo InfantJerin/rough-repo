@@ -12,6 +12,10 @@
     "sponsors": [
       "Northstar Capital Partners"
     ],
+    "staffedUsers": [
+      "banker_01",
+      "banker_02"
+    ],
     "businessDescription": "Apex Auto Components Pvt Ltd was founded in 1999 and manufactures precision-engineered auto components for OEMs in India and select export markets.",
     "executiveSummary": "The company has demonstrated stable revenues with moderate margin volatility driven by raw material prices. Credit profile is supported by long-standing OEM relationships.",
     "proposedCommitments": "Proposed INR 350 crore term loan for capacity expansion and partial refinancing of existing debt.",
@@ -31,6 +35,9 @@
     "commitmentDate": "2025-11-20",
     "clientType": "private",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "Nimbus Packaged Foods Pvt Ltd produces branded ready-to-eat and snack products with a nationwide distribution network.",
     "executiveSummary": "The company has shown strong top-line growth supported by brand expansion, though margins remain sensitive to agricultural input prices.",
     "proposedCommitments": "Proposed INR 220 crore working capital and capex facility.",
@@ -52,6 +59,9 @@
     "sponsors": [
       "SunPeak Infrastructure Partners"
     ],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Orion Renewables Pvt Ltd develops and operates utility-scale solar and wind power projects across multiple Indian states.",
     "executiveSummary": "Cash flows are stable under long-term PPAs, though counterparty risk from state DISCOMs remains a consideration.",
     "proposedCommitments": "Proposed INR 480 crore project finance facility for new solar capacity.",
@@ -71,6 +81,9 @@
     "commitmentDate": "2025-02-28",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "Vertex Pharma Ltd manufactures generic formulations for domestic and export markets, including regulated geographies.",
     "executiveSummary": "The company maintains steady revenues with exposure to regulatory scrutiny in export markets.",
     "proposedCommitments": "Proposed INR 300 crore term loan for R&D and plant upgrades.",
@@ -92,6 +105,9 @@
     "sponsors": [
       "Bridgepoint Logistics Fund"
     ],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Summit Logistics Pvt Ltd provides integrated warehousing and transportation services to FMCG and industrial clients.",
     "executiveSummary": "Revenue growth is steady, supported by long-term contracts, though margins are exposed to fuel price movements.",
     "proposedCommitments": "Proposed INR 180 crore fleet expansion and working capital facility.",
@@ -111,6 +127,9 @@
     "commitmentDate": "2025-03-25",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Cobalt Specialty Chemicals Ltd produces niche chemical intermediates for agrochemical and pharmaceutical customers.",
     "executiveSummary": "The company benefits from high entry barriers but faces regulatory and environmental compliance risks.",
     "proposedCommitments": "Proposed INR 260 crore capex facility for capacity debottlenecking.",
@@ -133,6 +152,9 @@
       "Accel Growth Partners",
       "CloudScale Ventures"
     ],
+    "staffedUsers": [
+      "banker_03"
+    ],
     "businessDescription": "Meridian SaaS Solutions Pvt Ltd provides cloud-based enterprise workflow and analytics software to global clients.",
     "executiveSummary": "The company has high revenue growth with improving cash flow visibility but remains in an investment phase.",
     "proposedCommitments": "Proposed USD 40 million venture debt facility.",
@@ -152,6 +174,9 @@
     "commitmentDate": "2025-10-03",
     "clientType": "private",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "Nova Retail Pvt Ltd operates a chain of mid-sized apparel and lifestyle retail stores across urban centers.",
     "executiveSummary": "Sales recovery post-pandemic is evident, though footfall volatility remains a risk.",
     "proposedCommitments": "Proposed INR 150 crore working capital facility.",
@@ -171,6 +196,9 @@
     "commitmentDate": "2024-10-14",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Helio Power Transmission Ltd undertakes EPC projects for power transmission and distribution networks.",
     "executiveSummary": "Order book provides medium-term revenue visibility, though execution risk persists.",
     "proposedCommitments": "Proposed INR 400 crore non-fund based limits and working capital.",
@@ -190,6 +218,9 @@
     "commitmentDate": "2025-04-09",
     "clientType": "private",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Evergreen Agri Inputs Pvt Ltd manufactures fertilizers and crop protection products for domestic markets.",
     "executiveSummary": "Demand is seasonal and policy-driven, with stable volumes but regulated pricing.",
     "proposedCommitments": "Proposed INR 280 crore seasonal working capital limits.",
@@ -209,6 +240,9 @@
     "commitmentDate": "2025-01-30",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Zenith Engineering Services Ltd provides engineering and maintenance services to infrastructure and industrial clients.",
     "executiveSummary": "Revenue is contract-based with moderate cyclicality linked to capex cycles.",
     "proposedCommitments": "Proposed INR 120 crore working capital facility.",
@@ -230,6 +264,9 @@
     "sponsors": [
       "Digital Infra Partners"
     ],
+    "staffedUsers": [
+      "banker_03"
+    ],
     "businessDescription": "Aurora Data Centers Pvt Ltd develops and operates hyperscale data center facilities.",
     "executiveSummary": "Long-term customer contracts provide revenue stability, offset by high capex requirements.",
     "proposedCommitments": "Proposed USD 150 million project finance facility.",
@@ -249,6 +286,9 @@
     "commitmentDate": "2025-07-07",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Atlas Metals Pvt Ltd processes and supplies rolled metal products to infrastructure and construction clients.",
     "executiveSummary": "Margins are cyclical and closely linked to commodity price movements.",
     "proposedCommitments": "Proposed INR 330 crore working capital and capex facility.",
@@ -270,6 +310,9 @@
     "sponsors": [
       "HealthBridge Capital"
     ],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "Pulse Healthcare Services Pvt Ltd operates a network of mid-sized hospitals in tier-2 cities.",
     "executiveSummary": "Occupancy levels are improving with stable payer mix.",
     "proposedCommitments": "Proposed INR 210 crore term loan for hospital expansion.",
@@ -289,6 +332,9 @@
     "commitmentDate": "2024-08-22",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Stratus Telecom Infrastructure Ltd owns and operates telecom towers leased to mobile operators.",
     "executiveSummary": "Stable rental income under long-term contracts supports predictable cash flows.",
     "proposedCommitments": "Proposed INR 500 crore refinancing facility.",
@@ -308,6 +354,9 @@
     "commitmentDate": "2025-09-29",
     "clientType": "private",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "BluePeak Textiles Pvt Ltd manufactures woven fabrics for domestic and export apparel brands.",
     "executiveSummary": "Export exposure provides growth opportunities but introduces forex volatility.",
     "proposedCommitments": "Proposed INR 190 crore working capital facility.",
@@ -329,6 +378,9 @@
     "sponsors": [
       "Stonepeak Projects Fund"
     ],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Ironclad Infrastructure Pvt Ltd undertakes EPC projects in roads and urban infrastructure.",
     "executiveSummary": "Order book provides visibility, though execution risk remains.",
     "proposedCommitments": "Proposed INR 420 crore non-fund based limits.",
@@ -348,6 +400,9 @@
     "commitmentDate": "2025-02-17",
     "clientType": "public",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_02"
+    ],
     "businessDescription": "Silverline Financial Services Ltd is a mid-sized NBFC focused on SME and retail lending.",
     "executiveSummary": "Portfolio quality is stable with controlled delinquencies.",
     "proposedCommitments": "Proposed INR 300 crore term loan for on-lending.",
@@ -369,6 +424,9 @@
     "sponsors": [
       "EcoCycle Sponsors LLP"
     ],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "GreenHaven Waste Management Pvt Ltd provides municipal solid waste processing services.",
     "executiveSummary": "Revenues are contract-based with municipalities, offering stability.",
     "proposedCommitments": "Proposed INR 140 crore project finance facility.",
@@ -388,6 +446,9 @@
     "commitmentDate": "2025-11-01",
     "clientType": "private",
     "sponsors": [],
+    "staffedUsers": [
+      "banker_01"
+    ],
     "businessDescription": "Polar Cold Chain Logistics Pvt Ltd operates temperature-controlled warehouses and transport solutions.",
     "executiveSummary": "Demand is driven by food and pharma clients with increasing outsourcing trends.",
     "proposedCommitments": "Proposed INR 260 crore capex and working capital facility.",

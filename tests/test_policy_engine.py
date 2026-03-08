@@ -49,12 +49,11 @@ def _opa_response_compliance():
 
 
 def _opa_response_deal_team_banker():
-    """Deal team banker: deal team memos + coverage, all fields."""
+    """Deal team banker: deal team membership in OpenSearch + coverage, all fields."""
     return {
         "allow": True,
         "user_role": "deal_team_banker",
         "document_filter": {
-            "deal_team_memos": ["MEMO-001", "MEMO-003", "MEMO-005"],
             "coverage_filter": {
                 "region": ["India"],
                 "industry": ["Industrials", "Energy"],
@@ -74,7 +73,6 @@ def _opa_response_credit_officer():
         "allow": True,
         "user_role": "credit_officer",
         "document_filter": {
-            "deal_team_memos": [],
             "coverage_filter": {
                 "region": ["India"],
                 "industry": ["Industrials", "Energy", "Materials"],
@@ -94,7 +92,6 @@ def _opa_response_derivatives_desk():
         "allow": True,
         "user_role": "derivatives_desk",
         "document_filter": {
-            "deal_team_memos": [],
             "coverage_filter": {},
             "use_deal_teams": False,
             "use_coverage": False,
@@ -154,10 +151,10 @@ class TestDecisionParsing:
         engine = _make_engine(_opa_response_deal_team_banker())
         decision = engine.evaluate(UserContext(user_id="banker_01"))
         assert decision.allow is True
+        assert decision.user_id == "banker_01"
         assert decision.unrestricted is False
         assert decision.use_deal_teams is True
         assert decision.use_coverage is True
-        assert "MEMO-001" in decision.deal_team_memos
         assert decision.coverage_filter["region"] == ["India"]
 
     def test_derivatives_has_role_filters(self):
@@ -188,8 +185,8 @@ class TestDocumentLevelSecurity:
         filters = result["query"]["bool"]["filter"]
         assert filters == []  # original empty list, nothing added
 
-    def test_deal_team_banker_filter_has_deal_memos_and_coverage(self):
-        """Deal team banker gets deal_team OR coverage filter."""
+    def test_deal_team_banker_filter_has_staffed_users_and_coverage(self):
+        """Deal team banker gets staffed-user OR coverage filter."""
         engine = _make_engine(_opa_response_deal_team_banker())
         result = engine.apply_to_query(_base_query(), UserContext(user_id="banker_01"))
         filters = result["query"]["bool"]["filter"]
@@ -200,11 +197,9 @@ class TestDocumentLevelSecurity:
         should = sec_filter["bool"]["should"]
         assert len(should) == 2  # deal team terms + coverage bool
 
-        # First should: deal team memos
-        deal_terms = should[0]
-        assert "terms" in deal_terms
-        assert "memoId" in deal_terms["terms"]
-        assert set(deal_terms["terms"]["memoId"]) == {"MEMO-001", "MEMO-003", "MEMO-005"}
+        # First should: staffed-user membership
+        staffed_term = should[0]
+        assert staffed_term == {"term": {"staffedUsers": "banker_01"}}
 
         # Second should: coverage
         coverage = should[1]
@@ -223,7 +218,7 @@ class TestDocumentLevelSecurity:
 
         sec_filter = filters[0]
         should = sec_filter["bool"]["should"]
-        # Only coverage, no deal team memos (empty list)
+        # Only coverage, no staffed-user clause
         assert len(should) == 1
         coverage = should[0]
         assert "bool" in coverage
@@ -315,13 +310,13 @@ class TestCombinedDLSFLS:
 
     def test_banker_full_pipeline(self):
         """
-        Deal team banker: deal team + coverage filters (DLS) + all fields (FLS).
+        Deal team banker: staffed-user + coverage filters (DLS) + all fields (FLS).
         """
         engine = _make_engine(_opa_response_deal_team_banker())
         query = _base_query()
         result = engine.apply_to_query(query, UserContext(user_id="banker_01"))
 
-        # DLS: 1 filter with should (deal team OR coverage)
+        # DLS: 1 filter with should (staffed-user OR coverage)
         filters = result["query"]["bool"]["filter"]
         assert len(filters) == 1
 

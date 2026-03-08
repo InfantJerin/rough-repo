@@ -9,6 +9,7 @@ from policy_engine.models import PolicyDecision
 
 def test_get_memo_uses_policy_enforced_search(monkeypatch):
     decision = PolicyDecision(
+        user_id="deriv_user_01",
         allow=True,
         user_role="derivatives_desk",
         role_filters=[{"term": {"clientType": "private"}}],
@@ -57,6 +58,7 @@ def test_get_memo_uses_policy_enforced_search(monkeypatch):
 
 def test_get_memo_returns_generic_not_found_or_denied(monkeypatch):
     decision = PolicyDecision(
+        user_id="banker_01",
         allow=True,
         user_role="deal_team_banker",
         unrestricted=False,
@@ -82,6 +84,7 @@ def test_get_memo_returns_generic_not_found_or_denied(monkeypatch):
 
 def test_get_schema_honors_empty_allowed_fields(monkeypatch):
     decision = PolicyDecision(
+        user_id="restricted_user",
         allow=True,
         user_role="restricted_role",
         unrestricted=False,

@@ -62,16 +62,10 @@ class TestDealTeamBankerOPA:
         assert decision.allow is True
         assert decision.user_role == "deal_team_banker"
 
-    def test_banker_01_deal_team_memos(self, engine):
+    def test_banker_01_uses_deal_team_enforcement(self, engine):
         decision = engine.evaluate(UserContext(user_id="banker_01"))
         assert decision.use_deal_teams is True
-        # banker_01 is in deal teams for these memos (from data.json)
-        expected_memos = {
-            "MEMO-001", "MEMO-003", "MEMO-005", "MEMO-006", "MEMO-009",
-            "MEMO-010", "MEMO-011", "MEMO-013", "MEMO-015", "MEMO-017",
-            "MEMO-019", "MEMO-020",
-        }
-        assert set(decision.deal_team_memos) == expected_memos
+        assert decision.user_id == "banker_01"
 
     def test_banker_01_coverage(self, engine):
         decision = engine.evaluate(UserContext(user_id="banker_01"))
@@ -87,14 +81,8 @@ class TestDealTeamBankerOPA:
         sec_filter = filters[0]
         assert "bool" in sec_filter
         should = sec_filter["bool"]["should"]
-        assert len(should) == 2  # deal team + coverage
-
-    def test_banker_02_different_deal_teams(self, engine):
-        decision = engine.evaluate(UserContext(user_id="banker_02"))
-        # banker_02 has different deal team memos
-        assert "MEMO-001" in decision.deal_team_memos  # shared with banker_01
-        assert "MEMO-002" in decision.deal_team_memos
-        assert "MEMO-003" not in decision.deal_team_memos  # only banker_01
+        assert len(should) == 2  # staffed user + coverage
+        assert should[0] == {"term": {"staffedUsers": "banker_01"}}
 
     def test_banker_all_fields(self, engine):
         decision = engine.evaluate(UserContext(user_id="banker_01"))
@@ -114,7 +102,6 @@ class TestCreditOfficerOPA:
     def test_credit_officer_no_deal_teams(self, engine):
         decision = engine.evaluate(UserContext(user_id="credit_officer_01"))
         assert decision.use_deal_teams is False
-        assert decision.deal_team_memos == []
 
     def test_credit_officer_coverage_filter(self, engine):
         decision = engine.evaluate(UserContext(user_id="credit_officer_01"))

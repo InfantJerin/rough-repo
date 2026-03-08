@@ -230,7 +230,7 @@ def get_memo(user_id: str, memo_id: str) -> str:
     permissions — if the user is not entitled to see this memo, access
     is denied. Fields the user cannot see are stripped from the response.
     """
-    decision = policy_engine.evaluate(UserContext(user_id=user_id), memo_ids=[memo_id])
+    decision = policy_engine.evaluate(UserContext(user_id=user_id))
 
     if not decision.allow:
         return json.dumps({"error": "Access denied"})

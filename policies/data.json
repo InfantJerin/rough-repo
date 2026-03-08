@@ -127,29 +127,6 @@
             "industry": []
           }
         }
-      },
-
-      "deal_teams": {
-        "MEMO-001": ["banker_01", "banker_02"],
-        "MEMO-002": ["banker_02"],
-        "MEMO-003": ["banker_01"],
-        "MEMO-004": ["banker_02"],
-        "MEMO-005": ["banker_01"],
-        "MEMO-006": ["banker_01"],
-        "MEMO-007": ["banker_03"],
-        "MEMO-008": ["banker_02"],
-        "MEMO-009": ["banker_01"],
-        "MEMO-010": ["banker_01"],
-        "MEMO-011": ["banker_01"],
-        "MEMO-012": ["banker_03"],
-        "MEMO-013": ["banker_01"],
-        "MEMO-014": ["banker_02"],
-        "MEMO-015": ["banker_01"],
-        "MEMO-016": ["banker_02"],
-        "MEMO-017": ["banker_01"],
-        "MEMO-018": ["banker_02"],
-        "MEMO-019": ["banker_01"],
-        "MEMO-020": ["banker_01"]
       }
     }
   }
