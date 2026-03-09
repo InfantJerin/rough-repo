@@ -40,3 +40,40 @@ Content-Type: application/json
     "sponsors": { "type": "keyword" }
   }
 }
+
+
+###
+
+GET http://localhost:9200/memo/_search HTTP/1.1
+Content-Type: application/json
+
+{
+  "query": {
+    "term": { "staffedUsers": "banker_01" }
+  }
+}
+
+
+###
+
+POST http://localhost:8181/v1/data/memo/authz/decision
+Content-Type: application/json
+
+{
+  "input": { "user_id": "banker_01" }
+}
+
+
+###
+
+POST http://localhost:8181/v1/data/memo/authz/decision
+Content-Type: application/json
+
+{
+  "input": { "user_id": "deriv_user_01" }
+}
+
+
+###
+
+GET http://localhost:8181/v1/data/memo/authz/users
